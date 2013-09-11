@@ -185,6 +185,8 @@ namespace NZBStatusUI
             {
                 _jsonString = JObject.Parse(_result ?? "{}").GetValue("queue") ?? new JObject();
                 _slots = (JArray)_jsonString["slots"] ?? new JArray();
+                // this ensures that the true will be returned on next pass only where there is new data downloaded
+                _result = string.Empty;
                 return true;
             }
             return false;
@@ -225,7 +227,7 @@ namespace NZBStatusUI
 
         private void DownloadFinished(object senderm, DownloadStringCompletedEventArgs eventArgs)
         {
-            // TODO do stuff
+            // BUG resolve what happens when wrong api is supplied
             _result = eventArgs.Result;
             _connectionStatus = csEnum.Ok;
         }
