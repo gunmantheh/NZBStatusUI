@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
@@ -17,12 +18,30 @@ namespace NZBStatusUI
         private IEnumerable<Slot> _queue;
         // private Slot _currentSlot;
         private readonly JsonReader _jsr;
+        private readonly bool _noApiKey;
         public MainForm()
         {
+
             InitializeComponent();
-            string[] args = { "http://localhost:8080", "0d40686633a53a316e0e9d46020a98c5" };
-            _jsr = Initialize(args);
-            _queue = new List<Slot>();
+            _noApiKey = false;
+            var apikey = "";
+            try
+            {
+                apikey = File.ReadAllText("apikey");
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show("couldn't find 'apikey' file in application folder", "No Api key", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                _noApiKey = true;
+            }
+            finally
+            {
+                string[] args = { "http://localhost:8080", apikey };
+                _jsr = Initialize(args);
+                _queue = new List<Slot>();
+            }
+
         }
 
         private JsonReader Initialize(string[] args)
@@ -39,8 +58,11 @@ namespace NZBStatusUI
 
         private void dataRefresher_Tick(object sender, EventArgs e)
         {
-            GetAndFillData();
-            RefreshUI();
+            if (_jsr != null)
+            {
+                GetAndFillData();
+                RefreshUI();
+            }
         }
 
         private void GetAndFillData()
@@ -60,6 +82,8 @@ namespace NZBStatusUI
                                           _jsr.MBLeft.SizeToString(),
                                           _jsr.ETA + " left");
 
+            if (_noApiKey)
+                this.Text = "No API key has been found";
 
             string percentageString = string.Format("{0}%", _jsr.TotalPercentage.ToString("D2"));
 
