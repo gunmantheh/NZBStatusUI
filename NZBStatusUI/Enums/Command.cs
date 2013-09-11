@@ -9,6 +9,8 @@ namespace NZBStatusUI.Enums
         [Description("pause")]
         Pause,
         [Description("queue")]
-        Queue
+        Queue,
+        [Description("config")]
+        Config
     }
 }
