@@ -76,14 +76,14 @@ namespace NZBStatusUI
 
         private void RefreshUI()
         {
-            this.Text = String.Format("{0}{1} | {2} | {3}",
+            this.Text = String.Format("[{0}{1} | {2} | {3}]",
                 _jsr.ConnectionStatus() != ConnectionStatus.Ok ? _jsr.ConnectionStatus() + " - " : string.Empty,
                 _jsr.IsDownloading ? _jsr.Speed.SpeedToString() : _jsr.IsPaused ? Resources.MainForm_RefreshUI_PAUSED : Resources.MainForm_RefreshUI_IDLE,
                                           _jsr.MBLeft.SizeToString(),
                                           _jsr.ETA + " left");
 
             if (_noApiKey)
-                this.Text = "No API key has been found";
+                this.Text = Resources.MainForm_RefreshUI_No_API_key_has_been_found;
 
             string percentageString = string.Format("{0}%", _jsr.TotalPercentage.ToString("D2"));
 

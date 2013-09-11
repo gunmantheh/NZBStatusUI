@@ -192,7 +192,6 @@ namespace NZBStatusUI
             return false;
         }
 
-        // private bool GetData()
         private void GetData()
         {
             try
@@ -217,7 +216,6 @@ namespace NZBStatusUI
                         break;
                 }
             }
-            // return _result ?? "{}";
         }
 
         public bool RefreshData()

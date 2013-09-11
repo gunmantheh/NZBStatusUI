@@ -89,6 +89,15 @@ namespace NZBStatusUI.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No API key has been found.
+        /// </summary>
+        internal static string MainForm_RefreshUI_No_API_key_has_been_found {
+            get {
+                return ResourceManager.GetString("MainForm_RefreshUI_No_API_key_has_been_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pause.
         /// </summary>
         internal static string MainForm_RefreshUI_Pause {

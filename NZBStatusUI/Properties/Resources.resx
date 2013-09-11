@@ -136,4 +136,7 @@
   <data name="MainForm_RefreshUI_delete" xml:space="preserve">
     <value>delete</value>
   </data>
+  <data name="MainForm_RefreshUI_No_API_key_has_been_found" xml:space="preserve">
+    <value>No API key has been found</value>
+  </data>
 </root>
