@@ -64,13 +64,13 @@ namespace NZBStatusUI
             string percentageString = string.Format("{0}%", _jsr.TotalPercentage.ToString("D2"));
 
             statMainLabel.Text = this.Text;
+            lblPercentage.Text = percentageString;
             statPercentage.Text = percentageString;
             statProgressBar.Value = _jsr.TotalPercentage;
             currentProgressBar.Value = _jsr.TotalPercentage;
 
             versionLink.Text = _jsr.Version;
-
-            lblPercentage.Text = percentageString;
+            lblSpeedLimit.Text = string.Format("Speed limit: {0}", _jsr.SpeedLimit == 0 ? "none" : Convert.ToDecimal(_jsr.SpeedLimit).SpeedToString());
 
             btnPauseMain.Text = _jsr.IsPaused ? Resources.MainForm_RefreshUI_Resume : Resources.MainForm_RefreshUI_Pause;
             dataGridView1.Rows.Clear();
@@ -150,6 +150,16 @@ namespace NZBStatusUI
         private void versionLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Process.Start("http://sabnzbd.org/download/");
+        }
+
+        private void numericUpDown1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Return)
+            {
+                var numericUpDown = sender as NumericUpDown;
+                if (numericUpDown != null)
+                    _jsr.SetSpeedLimit(Convert.ToInt32(string.IsNullOrEmpty(numericUpDown.Text) ? "0" : numericUpDown.Text));
+            }
         }
     }
 }

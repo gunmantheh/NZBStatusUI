@@ -48,8 +48,11 @@
             this.statProgressBar = new System.Windows.Forms.ToolStripProgressBar();
             this.statPercentage = new System.Windows.Forms.ToolStripStatusLabel();
             this.versionLink = new System.Windows.Forms.LinkLabel();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.lblSpeedLimit = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.statusStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
             // 
             // dataRefresher
@@ -142,7 +145,7 @@
             // 
             // currentProgressBar
             // 
-            this.currentProgressBar.Location = new System.Drawing.Point(12, 29);
+            this.currentProgressBar.Location = new System.Drawing.Point(12, 24);
             this.currentProgressBar.Name = "currentProgressBar";
             this.currentProgressBar.Size = new System.Drawing.Size(367, 23);
             this.currentProgressBar.TabIndex = 1;
@@ -150,7 +153,7 @@
             // btnPauseMain
             // 
             this.btnPauseMain.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnPauseMain.Location = new System.Drawing.Point(547, 29);
+            this.btnPauseMain.Location = new System.Drawing.Point(547, 31);
             this.btnPauseMain.Name = "btnPauseMain";
             this.btnPauseMain.Size = new System.Drawing.Size(75, 23);
             this.btnPauseMain.TabIndex = 2;
@@ -209,11 +212,37 @@
             this.versionLink.Text = "Home";
             this.versionLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.versionLink_LinkClicked);
             // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.numericUpDown1.InterceptArrowKeys = false;
+            this.numericUpDown1.Location = new System.Drawing.Point(476, 32);
+            this.numericUpDown1.Maximum = new decimal(new int[] {
+            102400,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(65, 20);
+            this.numericUpDown1.TabIndex = 6;
+            this.numericUpDown1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.numericUpDown1_KeyPress);
+            // 
+            // lblSpeedLimit
+            // 
+            this.lblSpeedLimit.AutoSize = true;
+            this.lblSpeedLimit.Location = new System.Drawing.Point(453, 16);
+            this.lblSpeedLimit.Name = "lblSpeedLimit";
+            this.lblSpeedLimit.Size = new System.Drawing.Size(88, 13);
+            this.lblSpeedLimit.TabIndex = 7;
+            this.lblSpeedLimit.Text = "Speed limit: none";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(634, 311);
+            this.Controls.Add(this.lblSpeedLimit);
+            this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.versionLink);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.lblPercentage);
@@ -227,6 +256,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -253,6 +283,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn script;
         private System.Windows.Forms.DataGridViewButtonColumn delete;
         private System.Windows.Forms.LinkLabel versionLink;
+        private System.Windows.Forms.NumericUpDown numericUpDown1;
+        private System.Windows.Forms.Label lblSpeedLimit;
     }
 }
 

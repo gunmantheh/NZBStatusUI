@@ -39,7 +39,8 @@ namespace NZBStatusUI
         {
             get
             {
-                return (TotalMB - MBLeft) > 0 ? Convert.ToInt32(Math.Round(TotalMB/(TotalMB - MBLeft),0)) : 0;
+                var downloaded = (TotalMB - MBLeft);
+                return TotalMB > 0 ? Convert.ToInt32(Math.Round(downloaded * 100 / TotalMB, 0)) : 0;
             }
         }
 
@@ -84,7 +85,7 @@ namespace NZBStatusUI
         }
         public string StatusIcon
         {
-            get 
+            get
             {
                 switch (Status)
                 {
@@ -99,7 +100,7 @@ namespace NZBStatusUI
                 }
             }
         }
-        
+
         public Slot GetCurrentSlot()
         {
             if (_slots.Count > 0)
@@ -121,9 +122,15 @@ namespace NZBStatusUI
 
         private TClassType GetRootValue<TClassType>(string key)
         {
-            var token = _jsonString.SelectToken(key);
-            var value = token != null ? token.Value<TClassType>() : default(TClassType);
-            return value;
+            JToken token = _jsonString.SelectToken(key);
+            if (token != null && new JRaw(token).Value.ToString() != string.Empty)
+            {
+               
+                
+                var value = token.Value<TClassType>();
+                return value;
+            }
+            return default(TClassType);
         }
 
         private TClassType GetCurrentSlotValue<TClassType>(string key)
@@ -177,7 +184,7 @@ namespace NZBStatusUI
             if (!string.IsNullOrEmpty(_result) && _connectionStatus == csEnum.Ok)
             {
                 _jsonString = JObject.Parse(_result ?? "{}").GetValue("queue") ?? new JObject();
-                _slots = (JArray) _jsonString["slots"] ?? new JArray();
+                _slots = (JArray)_jsonString["slots"] ?? new JArray();
                 return true;
             }
             return false;
@@ -239,6 +246,20 @@ namespace NZBStatusUI
         {
             return CommandResult(Command.Pause);
         }
+
+        public bool SetSpeedLimit(int speedLimit)
+        {
+            return CommandResult(Command.Config, Name.SpeedLimit, speedLimit.ToString());
+        }
+
+        public int SpeedLimit
+        {
+            get
+            {
+                return GetRootValue<int>("speedlimit");
+            }
+        }
+
 
         public bool Pause(string nzo_id)
         {
