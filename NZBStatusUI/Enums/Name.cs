@@ -11,6 +11,8 @@ namespace NZBStatusUI.Enums
         [Description("pause")]
         Pause,
         [Description("delete")]
-        Delete
+        Delete,
+        [Description("speedlimit")]
+        SpeedLimit
     }
 }
