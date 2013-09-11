@@ -19,11 +19,13 @@ namespace NZBStatusUI
         // private Slot _currentSlot;
         private readonly JsonReader _jsr;
         private readonly bool _noApiKey;
+        private readonly bool _noServerFile;
         public MainForm()
         {
 
             InitializeComponent();
             _noApiKey = false;
+            _noServerFile = false;
             var apikey = "";
             try
             {
@@ -31,17 +33,24 @@ namespace NZBStatusUI
             }
             catch (FileNotFoundException)
             {
-                MessageBox.Show("couldn't find 'apikey' file in application folder", "No Api key", MessageBoxButtons.OK,
+                MessageBox.Show(Resources.MainForm_MainForm_Couldn_t_find__apikey__file_in_application_folder, Resources.MainForm_MainForm_No_Api_key, MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 _noApiKey = true;
             }
-            finally
+            var server = "";
+            try
             {
-                string[] args = { "http://localhost:8080", apikey };
+                server = File.ReadAllText("server");
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show(Resources.MainForm_MainForm_Server_file_couldn_t_be_found, Resources.MainForm_MainForm_No_server_file, MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                _noServerFile = true;
+            }
+                string[] args = { server, apikey };
                 _jsr = Initialize(args);
                 _queue = new List<Slot>();
-            }
-
         }
 
         private JsonReader Initialize(string[] args)
@@ -69,8 +78,7 @@ namespace NZBStatusUI
         {
             if (_jsr.RefreshData())
             {
-                // _currentSlot = _jsr.GetCurrentSlot();
-                _queue = _jsr.GetAllSlots(); // .Where(x => x.index != 0);
+                _queue = _jsr.GetAllSlots();
             }
         }
 
@@ -87,11 +95,10 @@ namespace NZBStatusUI
 
             string percentageString = string.Format("{0}%", _jsr.TotalPercentage.ToString("D2"));
 
-            statMainLabel.Text = this.Text;
             lblPercentage.Text = percentageString;
-            statPercentage.Text = percentageString;
-            statProgressBar.Value = _jsr.TotalPercentage;
             currentProgressBar.Value = _jsr.TotalPercentage;
+
+            lblLastError.Text = _jsr.GetLastError();
 
             versionLink.Text = _jsr.Version;
             lblSpeedLimit.Text = string.Format("Speed limit: {0}", _jsr.SpeedLimit == 0 ? "none" : Convert.ToDecimal(_jsr.SpeedLimit).SpeedToString());

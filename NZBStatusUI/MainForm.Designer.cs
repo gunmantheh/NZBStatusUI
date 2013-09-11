@@ -44,14 +44,11 @@
             this.btnPauseMain = new System.Windows.Forms.Button();
             this.lblPercentage = new System.Windows.Forms.Label();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.statMainLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.statProgressBar = new System.Windows.Forms.ToolStripProgressBar();
-            this.statPercentage = new System.Windows.Forms.ToolStripStatusLabel();
             this.versionLink = new System.Windows.Forms.LinkLabel();
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.lblSpeedLimit = new System.Windows.Forms.Label();
+            this.lblLastError = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
-            this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -84,7 +81,7 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.RowHeadersVisible = false;
-            this.dataGridView1.Size = new System.Drawing.Size(630, 251);
+            this.dataGridView1.Size = new System.Drawing.Size(630, 228);
             this.dataGridView1.TabIndex = 0;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             // 
@@ -172,33 +169,11 @@
             // 
             // statusStrip1
             // 
-            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.statMainLabel,
-            this.statProgressBar,
-            this.statPercentage});
             this.statusStrip1.Location = new System.Drawing.Point(0, 289);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(634, 22);
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
-            // 
-            // statMainLabel
-            // 
-            this.statMainLabel.Name = "statMainLabel";
-            this.statMainLabel.Size = new System.Drawing.Size(118, 17);
-            this.statMainLabel.Text = "toolStripStatusLabel1";
-            // 
-            // statProgressBar
-            // 
-            this.statProgressBar.Name = "statProgressBar";
-            this.statProgressBar.Size = new System.Drawing.Size(100, 16);
-            this.statProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
-            // 
-            // statPercentage
-            // 
-            this.statPercentage.Name = "statPercentage";
-            this.statPercentage.Size = new System.Drawing.Size(29, 17);
-            this.statPercentage.Text = "00%";
             // 
             // versionLink
             // 
@@ -236,11 +211,21 @@
             this.lblSpeedLimit.TabIndex = 7;
             this.lblSpeedLimit.Text = "Speed limit: none";
             // 
+            // lblLastError
+            // 
+            this.lblLastError.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblLastError.AutoSize = true;
+            this.lblLastError.Location = new System.Drawing.Point(2, 295);
+            this.lblLastError.Name = "lblLastError";
+            this.lblLastError.Size = new System.Drawing.Size(0, 13);
+            this.lblLastError.TabIndex = 8;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(634, 311);
+            this.Controls.Add(this.lblLastError);
             this.Controls.Add(this.lblSpeedLimit);
             this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.versionLink);
@@ -254,8 +239,6 @@
             this.Text = "MainForm";
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
-            this.statusStrip1.ResumeLayout(false);
-            this.statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -270,9 +253,6 @@
         private System.Windows.Forms.Button btnPauseMain;
         private System.Windows.Forms.Label lblPercentage;
         private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel statMainLabel;
-        private System.Windows.Forms.ToolStripProgressBar statProgressBar;
-        private System.Windows.Forms.ToolStripStatusLabel statPercentage;
         private System.Windows.Forms.DataGridViewTextBoxColumn nzo_id;
         private System.Windows.Forms.DataGridViewButtonColumn pause;
         private System.Windows.Forms.DataGridViewTextBoxColumn filename;
@@ -285,6 +265,7 @@
         private System.Windows.Forms.LinkLabel versionLink;
         private System.Windows.Forms.NumericUpDown numericUpDown1;
         private System.Windows.Forms.Label lblSpeedLimit;
+        private System.Windows.Forms.Label lblLastError;
     }
 }
 

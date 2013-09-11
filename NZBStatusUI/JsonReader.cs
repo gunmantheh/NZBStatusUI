@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 using NZBStatus.DTOs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -24,6 +25,17 @@ namespace NZBStatusUI
         private csEnum _connectionCommandStatus;
         private string _result;
         private bool _commandResult;
+        private readonly List<string> _errorList;
+        private string _lastError;
+
+        public string GetLastError()
+        {
+            if (!string.IsNullOrEmpty(_lastError))
+            {
+                return _lastError;
+            }
+            return string.Empty;
+        }
 
         public decimal TotalMB
         {
@@ -152,6 +164,7 @@ namespace NZBStatusUI
             _slots = new JArray();
             _jsonString = new JObject();
             _webClient = new WebClient();
+            _errorList = new List<string>();
             _webClient.DownloadStringCompleted += DownloadFinished;
             if (!dontParse)
             {
@@ -196,7 +209,7 @@ namespace NZBStatusUI
         {
             try
             {
-                if (!_webClient.IsBusy)
+                if (!_webClient.IsBusy && !string.IsNullOrEmpty(_apiKey))
                 {
                     var url = new Uri(string.Format("{0}&apikey={1}", _url, _apiKey));
                     _webClient.DownloadStringAsync(url);
@@ -225,9 +238,19 @@ namespace NZBStatusUI
 
         private void DownloadFinished(object senderm, DownloadStringCompletedEventArgs eventArgs)
         {
-            // BUG resolve what happens when wrong api is supplied
-            _result = eventArgs.Result;
-            _connectionStatus = csEnum.Ok;
+            if (!eventArgs.Cancelled && eventArgs.Error == null)
+            {
+                // BUG resolve what happens when wrong api is supplied
+                _result = eventArgs.Result;
+                _connectionStatus = csEnum.Ok;
+            }
+            else
+            {
+                if (eventArgs.Error != null)
+                {
+                    LogError(eventArgs.Error, "DownloadFinished");
+                }
+            }
         }
 
         private void CommandFinished(object senderm, DownloadStringCompletedEventArgs eventArgs)
@@ -302,6 +325,13 @@ namespace NZBStatusUI
                 }
             }
             return _commandResult;
+        }
+
+        private void LogError(Exception e, string source)
+        {
+            var error = string.Format("[{0}] - [{1}] - {2}", DateTime.Now, source, e.Message);
+            _errorList.Add(error);
+            _lastError = error;
         }
     }
 }
