@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -101,6 +102,15 @@ namespace NZBStatusUI
         public static string GetDescription<TObjectClass>(TObjectClass value)
         {
             return GetEnumDescription<TObjectClass>(value.ToString());
+        }
+
+        public static string Description<T>(this T value) where T : struct, IConvertible
+        {
+            if (!typeof(T).IsEnum)
+            {
+                throw new ArgumentException("T must be an enumerated type");
+            }
+            return GetEnumDescription<T>(value.ToString());
         }
     }
 }
