@@ -71,6 +71,42 @@ namespace NZBStatusUI.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Couldn&apos;t find &apos;apikey&apos; file in application folder.
+        /// </summary>
+        internal static string MainForm_MainForm_Couldn_t_find__apikey__file_in_application_folder {
+            get {
+                return ResourceManager.GetString("MainForm_MainForm_Couldn_t_find__apikey__file_in_application_folder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Api key.
+        /// </summary>
+        internal static string MainForm_MainForm_No_Api_key {
+            get {
+                return ResourceManager.GetString("MainForm_MainForm_No_Api_key", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No server file.
+        /// </summary>
+        internal static string MainForm_MainForm_No_server_file {
+            get {
+                return ResourceManager.GetString("MainForm_MainForm_No_server_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server file couldn&apos;t be found.
+        /// </summary>
+        internal static string MainForm_MainForm_Server_file_couldn_t_be_found {
+            get {
+                return ResourceManager.GetString("MainForm_MainForm_Server_file_couldn_t_be_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to delete.
         /// </summary>
         internal static string MainForm_RefreshUI_delete {
