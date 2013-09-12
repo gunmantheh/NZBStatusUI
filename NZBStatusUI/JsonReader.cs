@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
-using System.Windows.Forms;
 using NZBStatus.DTOs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -94,23 +90,6 @@ namespace NZBStatusUI
         public string Status
         {
             get { return GetRootValue<string>("status"); }
-        }
-        public string StatusIcon
-        {
-            get
-            {
-                switch (Status)
-                {
-                    case "Downloading":
-                        return "|>";
-                    case "Idle":
-                        return "█";
-                    case "Paused":
-                        return "||";
-                    default:
-                        return "??";
-                }
-            }
         }
 
         public Slot GetCurrentSlot()
