@@ -144,7 +144,15 @@ namespace NZBStatusUI
             return default(TClassType);
         }
 
-        public JsonReader(string url, string apiKey, bool dontParse = false, string mode = "queue")
+        public JsonReader(string url, string apiKey)
+            : this(url, apiKey, false)
+        { }
+
+        public JsonReader(string url, string apiKey, bool dontParse)
+            :this(url,apiKey,dontParse,"queue")
+        {}
+
+        public JsonReader(string url, string apiKey, bool dontParse, string mode)
         {
             _baseURL = url;
             _url = GetBaseURL(url, mode);
@@ -163,7 +171,17 @@ namespace NZBStatusUI
             }
         }
 
-        private static string GetBaseURL(string url, string mode, string name = "", string value = "")
+        private static string GetBaseURL(string url, string mode)
+        {
+            return GetBaseURL(url, mode, null);
+        }
+
+        private static string GetBaseURL(string url, string mode, string name)
+        {
+            return GetBaseURL(url, mode, name, null);
+        }
+
+        private static string GetBaseURL(string url, string mode, string name, string value)
         {
             if (!string.IsNullOrEmpty(name))
             {
@@ -276,7 +294,17 @@ namespace NZBStatusUI
             return CommandResult(Command.Queue, Name.Delete, nzo_id);
         }
 
-        private bool CommandResult(Command command, Name name = Name.None, string value = "")
+        private bool CommandResult(Command command)
+        {
+            return CommandResult(command, Name.None, "");
+        }
+
+        private bool CommandResult(Command command, Name name)
+        {
+            return CommandResult(command, name, "");
+        }
+
+        private bool CommandResult(Command command, Name name, string value)
         {
             try
             {
@@ -284,7 +312,7 @@ namespace NZBStatusUI
                 webClient.DownloadStringCompleted += CommandFinished;
                 if (!webClient.IsBusy)
                 {
-                    var url = new Uri(string.Format("{0}&apikey={1}", GetBaseURL(_baseURL, Helpers.GetDescription(command), Helpers.GetDescription(name), value), _apiKey));
+                    var url = new Uri(string.Format("{0}&apikey={1}", GetBaseURL(_baseURL, command.Description(), name.Description(), value), _apiKey));
                     webClient.DownloadStringAsync(url);
                 }
             }
