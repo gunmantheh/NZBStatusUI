@@ -7,8 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
-using NZBStatus.DTOs;
-using NZBStatusUI.Enums;
+using JsonDataManipulator.Enums;
+using JsonDataManipulator.Helpers;
+using JsonDataManipulator.DTOs;
 using NZBStatusUI.Properties;
 
 namespace NZBStatusUI
@@ -17,7 +18,7 @@ namespace NZBStatusUI
     {
         private IEnumerable<Slot> _queue;
         // private Slot _currentSlot;
-        private readonly JsonReader _jsr;
+        private readonly JsonDataManipulator _jsr;
         private readonly bool _noApiKey;
         private readonly bool _noServerFile;
         public MainForm()
@@ -53,9 +54,9 @@ namespace NZBStatusUI
                 _queue = new List<Slot>();
         }
 
-        private JsonReader Initialize(string[] args)
+        private JsonDataManipulator Initialize(string[] args)
         {
-            var jsr = new JsonReader(args[0],
+            var jsr = new JsonDataManipulator(args[0],
                                      args[1]);
 
             var culture = (CultureInfo)CultureInfo.CurrentUICulture.Clone();
@@ -92,6 +93,11 @@ namespace NZBStatusUI
 
             if (_noApiKey)
                 this.Text = Resources.MainForm_RefreshUI_No_API_key_has_been_found;
+            if (_noServerFile)
+                this.Text = Resources.MainForm_RefreshUI_No_server_file_has_been_found;
+            if (_noApiKey && _noApiKey)
+                this.Text = string.Format("{0} {1}", Resources.MainForm_RefreshUI_No_API_key_has_been_found, Resources.MainForm_RefreshUI_No_server_file_has_been_found);
+
 
             string percentageString = string.Format("{0}%", _jsr.TotalPercentage.ToString("D2"));
 
@@ -138,7 +144,6 @@ namespace NZBStatusUI
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            this.Icon = Resources.green_down_arrow_hi;
             dataRefresher_Tick(sender, e);
         }
 

@@ -134,6 +134,15 @@ namespace NZBStatusUI.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No server file has been found.
+        /// </summary>
+        internal static string MainForm_RefreshUI_No_server_file_has_been_found {
+            get {
+                return ResourceManager.GetString("MainForm_RefreshUI_No_server_file_has_been_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pause.
         /// </summary>
         internal static string MainForm_RefreshUI_Pause {

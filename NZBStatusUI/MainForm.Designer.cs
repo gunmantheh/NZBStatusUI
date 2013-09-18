@@ -1,4 +1,6 @@
-﻿namespace NZBStatusUI
+﻿using NZBStatusUI.Properties;
+
+namespace NZBStatusUI
 {
     partial class MainForm
     {
@@ -62,6 +64,7 @@
             // 
             this.dataGridView1.AllowUserToAddRows = false;
             this.dataGridView1.AllowUserToDeleteRows = false;
+            this.dataGridView1.AllowUserToResizeRows = false;
             this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -161,7 +164,7 @@
             // lblPercentage
             // 
             this.lblPercentage.AutoSize = true;
-            this.lblPercentage.Location = new System.Drawing.Point(385, 34);
+            this.lblPercentage.Location = new System.Drawing.Point(385, 29);
             this.lblPercentage.Name = "lblPercentage";
             this.lblPercentage.Size = new System.Drawing.Size(27, 13);
             this.lblPercentage.TabIndex = 3;
@@ -242,6 +245,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
+            this.Icon = Resources.green_down_arrow_hi;
 
         }
 
