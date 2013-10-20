@@ -112,7 +112,7 @@ namespace NZBStatusUI
             {
                 if (_jsr.CurrentPercentage > 0)
                 {
-                    TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Normal);
+                    TaskbarManager.Instance.SetProgressState(_jsr.IsPaused ? TaskbarProgressBarState.Paused : TaskbarProgressBarState.Normal);
                     TaskbarManager.Instance.SetProgressValue(_jsr.CurrentPercentage, 100);
                 }
                 else
