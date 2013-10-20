@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using JsonDataManipulator.Enums;
 using JsonDataManipulator.Helpers;
 using JsonDataManipulator.DTOs;
+using Microsoft.WindowsAPICodePack.Taskbar;
 using NZBStatusUI.Properties;
 
 namespace NZBStatusUI
@@ -49,9 +50,9 @@ namespace NZBStatusUI
                     MessageBoxIcon.Error);
                 _noServerFile = true;
             }
-                string[] args = { server, apikey };
-                _jsr = Initialize(args);
-                _queue = new List<Slot>();
+            string[] args = { server, apikey };
+            _jsr = Initialize(args);
+            _queue = new List<Slot>();
         }
 
         private JsonDataManipulator Initialize(string[] args)
@@ -85,24 +86,43 @@ namespace NZBStatusUI
 
         private void RefreshUI()
         {
-            this.Text = String.Format("[{0}{1} | {2} | {3}]",
+            Text = String.Format("[{0}{1} | {2} | {3}]",
                 _jsr.ConnectionStatus() != ConnectionStatus.Ok ? _jsr.ConnectionStatus() + " - " : string.Empty,
-                _jsr.IsDownloading ? _jsr.Speed.SpeedToString() : _jsr.IsPaused ? Resources.MainForm_RefreshUI_PAUSED : Resources.MainForm_RefreshUI_IDLE,
-                                          _jsr.MBLeft.SizeToString(),
-                                          _jsr.ETA + " left");
+                _jsr.IsDownloading
+                    ? _jsr.Speed.SpeedToString()
+                    : _jsr.IsPaused ? Resources.MainForm_RefreshUI_PAUSED : Resources.MainForm_RefreshUI_IDLE,
+                _jsr.MBLeft.SizeToString(),
+                _jsr.ETA + " left");
 
             if (_noApiKey)
-                this.Text = Resources.MainForm_RefreshUI_No_API_key_has_been_found;
+                Text = Resources.MainForm_RefreshUI_No_API_key_has_been_found;
             if (_noServerFile)
-                this.Text = Resources.MainForm_RefreshUI_No_server_file_has_been_found;
+                Text = Resources.MainForm_RefreshUI_No_server_file_has_been_found;
             if (_noApiKey && _noApiKey)
-                this.Text = string.Format("{0} {1}", Resources.MainForm_RefreshUI_No_API_key_has_been_found, Resources.MainForm_RefreshUI_No_server_file_has_been_found);
+                Text = string.Format("{0} {1}", Resources.MainForm_RefreshUI_No_API_key_has_been_found,
+                    Resources.MainForm_RefreshUI_No_server_file_has_been_found);
 
 
             string percentageString = string.Format("{0}%", _jsr.TotalPercentage.ToString("D2"));
 
             lblPercentage.Text = percentageString;
-            currentProgressBar.Value = _jsr.TotalPercentage;
+            currentProgressBar.Value = _jsr.CurrentPercentage;
+
+            try
+            {
+                if (_jsr.CurrentPercentage > 0)
+                {
+                    TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Normal);
+                    TaskbarManager.Instance.SetProgressValue(_jsr.CurrentPercentage, 100);
+                }
+                else
+                {
+                    TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
+                }
+            }
+            catch (InvalidOperationException)
+            {
+            }
 
             lblLastError.Text = _jsr.GetLastError();
 

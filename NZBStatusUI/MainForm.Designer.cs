@@ -50,6 +50,7 @@ namespace NZBStatusUI
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.lblSpeedLimit = new System.Windows.Forms.Label();
             this.lblLastError = new System.Windows.Forms.Label();
+
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
@@ -237,6 +238,7 @@ namespace NZBStatusUI
             this.Controls.Add(this.btnPauseMain);
             this.Controls.Add(this.currentProgressBar);
             this.Controls.Add(this.dataGridView1);
+            this.Icon = global::NZBStatusUI.Properties.Resources.green_down_arrow_hi;
             this.MinimumSize = new System.Drawing.Size(650, 350);
             this.Name = "MainForm";
             this.Text = "MainForm";
@@ -245,7 +247,6 @@ namespace NZBStatusUI
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-            this.Icon = Resources.green_down_arrow_hi;
 
         }
 
