@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -11,24 +12,30 @@ using JsonDataManipulator.Enums;
 using JsonDataManipulator.Helpers;
 using JsonDataManipulator.DTOs;
 using Microsoft.WindowsAPICodePack.Taskbar;
+using NZBStatusUI.DataGridViewProgress;
+using NZBStatusUI.Helpers;
 using NZBStatusUI.Properties;
 
 namespace NZBStatusUI
 {
     public partial class MainForm : Form
     {
+        private const string NzoID = "nzo_id";
         private IEnumerable<Slot> _queue;
         // private Slot _currentSlot;
         private readonly JsonDataManipulator _jsr;
         private readonly bool _noApiKey;
         private readonly bool _noServerFile;
+        private HashSet<string> _currentList;
         public MainForm()
         {
 
             InitializeComponent();
             _noApiKey = false;
             _noServerFile = false;
+            _currentList = new HashSet<string>();
             var apikey = "";
+            dgv1.EditingControlShowing += new DataGridViewEditingControlShowingEventHandler(dgv1_EditingControlShowing);
             try
             {
                 apikey = File.ReadAllText("apikey");
@@ -86,12 +93,13 @@ namespace NZBStatusUI
 
         private void RefreshUI()
         {
-            Text = String.Format("[{0}{1} | {2} | {3}]",
+            Text = (!_jsr.IsDownloading && !_jsr.IsPaused) ? "[IDLE]" :
+                String.Format("[{0}{1} | {2} | {3}]",
                 _jsr.ConnectionStatus() != ConnectionStatus.Ok ? _jsr.ConnectionStatus() + " - " : string.Empty,
                 _jsr.IsDownloading
                     ? _jsr.Speed.SpeedToString()
                     : _jsr.IsPaused ? Resources.MainForm_RefreshUI_PAUSED : Resources.MainForm_RefreshUI_IDLE,
-                _jsr.MBLeft.SizeToString(),
+                _jsr.TotalMBLeft.SizeToString(),
                 _jsr.ETA + " left");
 
             if (_noApiKey)
@@ -130,35 +138,169 @@ namespace NZBStatusUI
             lblSpeedLimit.Text = string.Format("Speed limit: {0}", _jsr.SpeedLimit == 0 ? "none" : Convert.ToDecimal(_jsr.SpeedLimit).SpeedToString());
 
             btnPauseMain.Text = _jsr.IsPaused ? Resources.MainForm_RefreshUI_Resume : Resources.MainForm_RefreshUI_Pause;
-            dataGridView1.Rows.Clear();
+            // dataGridView1.Rows.Clear();
+            var lastList = new HashSet<string>(_currentList);
+            _currentList.Clear();
             if (_queue.Any())
             {
                 foreach (var slot in _queue)
                 {
-                    var row = (DataGridViewRow)dataGridView1.RowTemplate.Clone();
-                    var btnDelete = new DataGridViewButtonCell { Value = "Delete" };
-                    var btnPause = new DataGridViewButtonCell { Value = slot.status == "Paused" ? "Resume" : "Pause" };
+
+                    var row = (DataGridViewRow)dgv1.RowTemplate.Clone();
+
+                    // prgProgress.SetProgressBarColor(Color.FromKnownColor(KnownColor.Control));
                     if (row != null)
                     {
-                        row.CreateCells(dataGridView1, slot.nzo_id, Resources.MainForm_RefreshUI_Pause, slot.filename, slot.size, slot.timeleft, slot.cat, slot.priority, slot.script, "delete");
-                        var dataGridViewColumn = dataGridView1.Columns[Resources.MainForm_RefreshUI_delete];
-                        if (dataGridViewColumn != null)
+                        CreateRow(row, slot);
+                    }
+                    if (!dgv1.ContainsValue(NzoID, slot.nzo_id))
+                    {
+                        if (row != null) dgv1.Rows.Add(row);
+                    }
+                    else
+                    {
+                        int rowID = dgv1.GetRowID(NzoID, slot.nzo_id);
+
+                        //var kvCol = dgv1.Columns["category"] as DataGridViewComboBoxColumn;
+                        //if (kvCol != null)
+                        //{
+                        //    var existingCategories = new List<string>(kvCol.Items.Cast<string>().ToList());
+                        //    kvCol.
+                        //    if (existingCategories.Except(_jsr.Categories()).Any())
+                        //    {
+                        //        kvCol.DataSource = _jsr.Categories();
+                        //    }
+                        //}
+                        
+                        UpdateValue(rowID, "index", slot.index);
+                        UpdateValue(rowID, "pause", GetStatus(slot));
+                        UpdateValue(rowID, "filename", slot.filename);
+                        UpdateValue(rowID, "size", slot.size);
+                        UpdateValue(rowID, "progress", slot.percentage);
+                        UpdateValue(rowID, "timeleft", slot.timeleft);
+                        UpdateValue(rowID, "priority", slot.priority);
+                        UpdateValue(rowID, "script", slot.script);
+                        if ((string) dgv1.Rows[rowID].Cells["category"].Value != slot.cat)
                         {
-                            row.Cells[dataGridViewColumn.Index] = btnDelete;
-                            dataGridViewColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+                            dgv1.Rows[rowID].Cells["category"].Value = slot.cat;
+                            dgv1.Rows[rowID].Cells["category"].Style.BackColor = GetColorByCategory(slot.cat);
                         }
 
-                        dataGridViewColumn = dataGridView1.Columns[Resources.MainForm_RefreshUI_Pause];
-                        if (dataGridViewColumn != null)
-                        {
-                            row.Cells[dataGridViewColumn.Index] = btnPause;
-                            dataGridViewColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-                        }
-                        if (slot.status == "Paused")
-                            row.DefaultCellStyle.BackColor = Color.LightGray;
-                        dataGridView1.Rows.Add(row);
+                        
                     }
+                    _currentList.Add(slot.nzo_id);
                 }
+                HashSet<string> listOfValues = dgv1.GetHashSet(NzoID);
+                foreach (var missing in listOfValues.Except(_currentList))
+                {
+                    //DataGridViewRow row = dgv1.Rows.Cast<DataGridViewRow>().First(r => r.Cells[NZO_ID].Value.ToString().Equals(missing));
+                    //dgv1.Rows.RemoveAt(row.Index);
+                    dgv1.Rows.RemoveAt(dgv1.GetRowID(NzoID, missing));
+                }
+                SortList();
+            }
+            else
+            {
+                if (dgv1.Rows.Count > 0) dgv1.Rows.Clear();
+            }
+        }
+
+        private void UpdateValue(int rowID, string key, int value)
+        {
+            if ((int)dgv1.Rows[rowID].Cells[key].Value != value)
+            {
+                dgv1.Rows[rowID].Cells[key].Value = value;
+            }
+        }
+
+        private void UpdateValue(int rowID, string key, string value)
+        {
+            if ((string)dgv1.Rows[rowID].Cells[key].Value != value)
+            {
+                dgv1.Rows[rowID].Cells[key].Value = value;
+            }
+        }
+
+        private void SortList()
+        {
+
+            foreach (var slot in _queue)
+            {
+                int rowID = dgv1.GetRowID(NzoID, slot.nzo_id);
+                if (rowID != slot.index)
+                {
+                    var column = dgv1.Columns["index"];
+                    if (column != null)
+                    {
+                        dgv1.Sort(column, ListSortDirection.Ascending);
+                    }
+                    break;
+                }
+            }
+        }
+
+        private static string GetStatus(Slot slot)
+        {
+            return slot.status == "Paused" ? "Resume" : "Pause";
+        }
+
+
+        private void CreateRow(DataGridViewRow row, Slot slot)
+        {
+            var btnDelete = new DataGridViewButtonCell { Value = "Delete" };
+            var btnPause = new DataGridViewButtonCell { Value = GetStatus(slot) };
+            var prgProgress = new DataGridViewProgressCell { Value = slot.percentage };
+            //var cmbCategories = new DataGridViewComboBoxCell() { Value = slot.cat };
+
+            //cmbCategories.DataSource = _jsr.Categories();
+            //cmbCategories.ValueType = typeof (string);
+            //cmbCategories.ReadOnly = false;
+
+            prgProgress.SetProgressBarColor(Color.LimeGreen);
+
+            row.CreateCells(dgv1, slot.index, slot.nzo_id, Resources.MainForm_RefreshUI_Pause, slot.filename, slot.size, "progress",
+                slot.timeleft, slot.cat, slot.priority, slot.script, "delete");
+            var dataGridViewColumn = dgv1.Columns[Resources.MainForm_RefreshUI_delete];
+            if (dataGridViewColumn != null)
+            {
+                row.Cells[dataGridViewColumn.Index] = btnDelete;
+                dataGridViewColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            }
+
+            dataGridViewColumn = dgv1.Columns[Resources.MainForm_RefreshUI_Pause];
+            if (dataGridViewColumn != null)
+            {
+                row.Cells[dataGridViewColumn.Index] = btnPause;
+                dataGridViewColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            }
+
+            dataGridViewColumn = dgv1.Columns["progress"];
+            if (dataGridViewColumn != null)
+            {
+                row.Cells[dataGridViewColumn.Index] = prgProgress;
+                dataGridViewColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            }
+
+            dataGridViewColumn = dgv1.Columns["Category"];
+            if (dataGridViewColumn != null)
+            {
+                //row.Cells[dataGridViewColumn.Index] = cmbCategories;
+                row.Cells[dataGridViewColumn.Index].Style.BackColor = GetColorByCategory(slot.cat);
+            }
+
+            if (slot.status == "Paused")
+                row.DefaultCellStyle.BackColor = Color.LightGray;
+        }
+
+        private Color GetColorByCategory(string cat)
+        {
+            // TODO: this has to be loaded from file so that colors and categories can be customized
+            switch (cat)
+            {
+                case "anime":
+                    return Color.FromArgb(255, 255, 185);
+                default:
+                    return Color.White;
             }
         }
 
@@ -178,13 +320,13 @@ namespace NZBStatusUI
             if (dataGridView != null)
                 switch (dataGridView.Columns[e.ColumnIndex].Name)
                 {
-                    case "status":
-                        MessageBox.Show("you just clicked status");
-                        break;
+                    //case "status":
+                    //    MessageBox.Show("you just clicked status");
+                    //    break;
                     case "delete":
                         if (e.RowIndex >= 0)
                         {
-                            _jsr.Delete(dataGridView.Rows[e.RowIndex].Cells["nzo_id"].Value as string);
+                            _jsr.Delete(dataGridView.Rows[e.RowIndex].Cells[NzoID].Value as string);
                         }
                         break;
                     case "pause":
@@ -192,15 +334,26 @@ namespace NZBStatusUI
                         {
                             if (dataGridView.Rows[e.RowIndex].Cells["pause"].Value as string == "Resume")
                             {
-                                _jsr.Resume(dataGridView.Rows[e.RowIndex].Cells["nzo_id"].Value as string);
+                                _jsr.Resume(dataGridView.Rows[e.RowIndex].Cells[NzoID].Value as string);
                             }
                             else
                             {
-                                _jsr.Pause(dataGridView.Rows[e.RowIndex].Cells["nzo_id"].Value as string);
+                                _jsr.Pause(dataGridView.Rows[e.RowIndex].Cells[NzoID].Value as string);
                             }
                         }
                         break;
                 }
+            //dgv1.BeginEdit(false);
+            //var dataGridViewColumn = dgv1.Columns["category"];
+            //if (dataGridViewColumn != null && e.ColumnIndex == dataGridViewColumn.Index)// the combobox column index
+            //{
+            //    if (this.dgv1.EditingControl != null
+            //        && this.dgv1.EditingControl is ComboBox)
+            //    {
+            //        ComboBox cmb = this.dgv1.EditingControl as ComboBox;
+            //        cmb.DroppedDown = true;
+            //    }
+            //}
         }
 
         private void versionLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -216,6 +369,37 @@ namespace NZBStatusUI
                 if (numericUpDown != null)
                     _jsr.SetSpeedLimit(Convert.ToInt32(string.IsNullOrEmpty(numericUpDown.Text) ? "0" : numericUpDown.Text));
             }
+        }
+
+        private void dgv1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            /*var dgvc = dgv1.Columns["category"];
+            if (dgvc != null && (dgv1.CurrentCell.ColumnIndex == dgvc.Index && e.Control is ComboBox))
+            {
+                ComboBox cb = e.Control as ComboBox;
+                if (cb != null)
+                {
+                    // first remove event handler to keep from attaching multiple:
+                    cb.SelectedIndexChanged -= new
+                    EventHandler(cb_SelectedIndexChanged);
+
+                    // now attach the event handler
+                    cb.SelectedIndexChanged += new
+                    EventHandler(cb_SelectedIndexChanged);
+                }
+           }*/
+        }
+        private void dgv1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            /*if (dgv1.IsCurrentCellDirty)
+            {
+                dgv1.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }*/
+        }
+
+        void cb_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            MessageBox.Show("Selected index changed");
         }
     }
 }

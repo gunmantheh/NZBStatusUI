@@ -71,6 +71,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataGridViewProgress\DataGridViewProgressCell.cs" />
+    <Compile Include="DataGridViewProgress\DataGridViewProgressColumn.cs" />
+    <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -81,6 +84,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
