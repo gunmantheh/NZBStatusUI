@@ -22,11 +22,13 @@ namespace NZBStatusUI
     {
         private const string NzoID = "nzo_id";
         private IEnumerable<Slot> _queue;
+        private IEnumerable<History> _history;
         // private Slot _currentSlot;
         private readonly JsonDataManipulator _jsr;
         private readonly bool _noApiKey;
         private readonly bool _noServerFile;
         private HashSet<string> _currentList;
+        private HashSet<string> _historyList;
         public MainForm()
         {
 
@@ -34,8 +36,8 @@ namespace NZBStatusUI
             _noApiKey = false;
             _noServerFile = false;
             _currentList = new HashSet<string>();
+            _historyList = new HashSet<string>();
             var apikey = "";
-            dgv1.EditingControlShowing += new DataGridViewEditingControlShowingEventHandler(dgv1_EditingControlShowing);
             try
             {
                 apikey = File.ReadAllText("apikey");
@@ -60,6 +62,7 @@ namespace NZBStatusUI
             string[] args = { server, apikey };
             _jsr = Initialize(args);
             _queue = new List<Slot>();
+            _history = new List<History>();
         }
 
         private JsonDataManipulator Initialize(string[] args)
@@ -88,6 +91,7 @@ namespace NZBStatusUI
             if (_jsr.RefreshData())
             {
                 _queue = _jsr.GetAllSlots();
+                _history = _jsr.GetHistory(0);
             }
         }
 
@@ -111,9 +115,7 @@ namespace NZBStatusUI
                     Resources.MainForm_RefreshUI_No_server_file_has_been_found);
 
 
-            string percentageString = string.Format("{0}%", _jsr.TotalPercentage.ToString("D2"));
-
-            lblPercentage.Text = percentageString;
+            lblPercentage.Text = string.Format("{0}%", _jsr.TotalPercentage);
             currentProgressBar.Value = _jsr.CurrentPercentage;
 
             try
@@ -138,28 +140,33 @@ namespace NZBStatusUI
             lblSpeedLimit.Text = string.Format("Speed limit: {0}", _jsr.SpeedLimit == 0 ? "none" : Convert.ToDecimal(_jsr.SpeedLimit).SpeedToString());
 
             btnPauseMain.Text = _jsr.IsPaused ? Resources.MainForm_RefreshUI_Resume : Resources.MainForm_RefreshUI_Pause;
-            // dataGridView1.Rows.Clear();
-            var lastList = new HashSet<string>(_currentList);
             _currentList.Clear();
+            _historyList.Clear();
+
+            FillCurrentTable();
+            FillHistoryTable();
+        }
+
+        private void FillCurrentTable()
+        {
             if (_queue.Any())
             {
                 foreach (var slot in _queue)
                 {
-
-                    var row = (DataGridViewRow)dgv1.RowTemplate.Clone();
+                    var row = (DataGridViewRow)dgvCurrent.RowTemplate.Clone();
 
                     // prgProgress.SetProgressBarColor(Color.FromKnownColor(KnownColor.Control));
                     if (row != null)
                     {
                         CreateRow(row, slot);
                     }
-                    if (!dgv1.ContainsValue(NzoID, slot.nzo_id))
+                    if (!dgvCurrent.ContainsValue(NzoID, slot.nzo_id))
                     {
-                        if (row != null) dgv1.Rows.Add(row);
+                        if (row != null) dgvCurrent.Rows.Add(row);
                     }
                     else
                     {
-                        int rowID = dgv1.GetRowID(NzoID, slot.nzo_id);
+                        int rowID = dgvCurrent.GetRowID(NzoID, slot.nzo_id);
 
                         //var kvCol = dgv1.Columns["category"] as DataGridViewComboBoxColumn;
                         //if (kvCol != null)
@@ -171,68 +178,143 @@ namespace NZBStatusUI
                         //        kvCol.DataSource = _jsr.Categories();
                         //    }
                         //}
-                        
-                        UpdateValue(rowID, "index", slot.index);
-                        UpdateValue(rowID, "pause", GetStatus(slot));
-                        UpdateValue(rowID, "filename", slot.filename);
-                        UpdateValue(rowID, "size", slot.size);
-                        UpdateValue(rowID, "progress", slot.percentage);
-                        UpdateValue(rowID, "timeleft", slot.timeleft);
-                        UpdateValue(rowID, "priority", slot.priority);
-                        UpdateValue(rowID, "script", slot.script);
-                        if ((string) dgv1.Rows[rowID].Cells["category"].Value != slot.cat)
-                        {
-                            dgv1.Rows[rowID].Cells["category"].Value = slot.cat;
-                            dgv1.Rows[rowID].Cells["category"].Style.BackColor = GetColorByCategory(slot.cat);
-                        }
 
-                        
+                        UpdateValue(dgvCurrent, rowID, "index", slot.index);
+                        UpdateValue(dgvCurrent, rowID, "pause", GetStatus(slot));
+                        UpdateValue(dgvCurrent, rowID, "filename", slot.filename);
+                        UpdateValue(dgvCurrent, rowID, "size", slot.size);
+                        UpdateValue(dgvCurrent, rowID, "progress", slot.percentage);
+                        UpdateValue(dgvCurrent, rowID, "timeleft", slot.timeleft);
+                        UpdateValue(dgvCurrent, rowID, "priority", slot.priority);
+                        UpdateValue(dgvCurrent, rowID, "script", slot.script);
+                        if ((string)dgvCurrent.Rows[rowID].Cells["category"].Value != slot.cat)
+                        {
+                            dgvCurrent.Rows[rowID].Cells["category"].Value = slot.cat;
+                            dgvCurrent.Rows[rowID].Cells["category"].Style.BackColor = GetColorByCategory(slot.cat);
+                        }
                     }
                     _currentList.Add(slot.nzo_id);
                 }
-                HashSet<string> listOfValues = dgv1.GetHashSet(NzoID);
-                foreach (var missing in listOfValues.Except(_currentList))
-                {
-                    //DataGridViewRow row = dgv1.Rows.Cast<DataGridViewRow>().First(r => r.Cells[NZO_ID].Value.ToString().Equals(missing));
-                    //dgv1.Rows.RemoveAt(row.Index);
-                    dgv1.Rows.RemoveAt(dgv1.GetRowID(NzoID, missing));
-                }
-                SortList();
+                RemoveMissingRows(dgvCurrent, _currentList);
+                SortList(dgvCurrent, _queue);
             }
             else
             {
-                if (dgv1.Rows.Count > 0) dgv1.Rows.Clear();
+                if (dgvCurrent.Rows.Count > 0) dgvCurrent.Rows.Clear();
             }
         }
 
-        private void UpdateValue(int rowID, string key, int value)
+        private void FillHistoryTable()
         {
-            if ((int)dgv1.Rows[rowID].Cells[key].Value != value)
+            if (_history.Any())
             {
-                dgv1.Rows[rowID].Cells[key].Value = value;
+                foreach (var slot in _history)
+                {
+                    var row = (DataGridViewRow)dgvHistory.RowTemplate.Clone();
+
+                    // prgProgress.SetProgressBarColor(Color.FromKnownColor(KnownColor.Control));
+                    if (row != null)
+                    {
+                        CreateRow(row, slot);
+                    }
+                    if (!dgvHistory.ContainsValue("history" + NzoID, slot.nzo_id))
+                    {
+                        if (row != null) dgvHistory.Rows.Add(row);
+                    }
+                    else
+                    {
+                        int rowID = dgvHistory.GetRowID("history" + NzoID, slot.nzo_id);
+
+                        //var kvCol = dgv1.Columns["category"] as DataGridViewComboBoxColumn;
+                        //if (kvCol != null)
+                        //{
+                        //    var existingCategories = new List<string>(kvCol.Items.Cast<string>().ToList());
+                        //    kvCol.
+                        //    if (existingCategories.Except(_jsr.Categories()).Any())
+                        //    {
+                        //        kvCol.DataSource = _jsr.Categories();
+                        //    }
+                        //}
+
+                        UpdateValue(dgvHistory, rowID, "history" + "id", slot.id);
+                        UpdateValue(dgvHistory, rowID, "history" + "size", slot.size);
+                        UpdateValue(dgvHistory, rowID, "history" + "script", slot.script);
+                        UpdateValue(dgvHistory, rowID, "history" + "name", slot.name);
+                        if ((string)dgvHistory.Rows[rowID].Cells["history" + "category"].Value != slot.category)
+                        {
+                            dgvHistory.Rows[rowID].Cells["history" + "category"].Value = slot.category;
+                            dgvHistory.Rows[rowID].Cells["history" + "category"].Style.BackColor = GetColorByCategory(slot.category);
+                        }
+                    }
+                    _historyList.Add(slot.nzo_id);
+                }
+                RemoveMissingRows(dgvHistory, _historyList);
+                SortList(dgvHistory, _history);
+            }
+            else
+            {
+                if (dgvHistory.Rows.Count > 0) dgvHistory.Rows.Clear();
             }
         }
 
-        private void UpdateValue(int rowID, string key, string value)
+        /// <summary>
+        /// Removes rows from DataGridView that are no longer present in _currentList
+        /// </summary>
+        private void RemoveMissingRows(DataGridView dgv, HashSet<string> list)
         {
-            if ((string)dgv1.Rows[rowID].Cells[key].Value != value)
+            HashSet<string> listOfValues = dgv.GetHashSet(NzoID);
+            foreach (var missing in listOfValues.Except(list))
             {
-                dgv1.Rows[rowID].Cells[key].Value = value;
+                dgv.Rows.RemoveAt(dgv.GetRowID(NzoID, missing));
             }
         }
 
-        private void SortList()
+        private void UpdateValue(DataGridView dgv, int rowID, string key, int value)
+        {
+            if ((int)dgv.Rows[rowID].Cells[key].Value != value)
+            {
+                dgv.Rows[rowID].Cells[key].Value = value;
+            }
+        }
+
+        private void UpdateValue(DataGridView dgv, int rowID, string key, string value)
+        {
+            if ((string)dgv.Rows[rowID].Cells[key].Value != value)
+            {
+                dgv.Rows[rowID].Cells[key].Value = value;
+            }
+        }
+
+        private void SortList(DataGridView dgv, IEnumerable<Slot> list)
         {
 
-            foreach (var slot in _queue)
+            foreach (var slot in list)
             {
-                int rowID = dgv1.GetRowID(NzoID, slot.nzo_id);
+                int rowID = dgv.GetRowID(NzoID, slot.nzo_id);
                 if (rowID != slot.index)
                 {
-                    var column = dgv1.Columns["index"];
+                    var column = dgv.Columns["index"];
                     if (column != null)
                     {
-                        dgv1.Sort(column, ListSortDirection.Ascending);
+                        dgv.Sort(column, ListSortDirection.Ascending);
+                    }
+                    break;
+                }
+            }
+        }
+
+        private void SortList(DataGridView dgv, IEnumerable<History> list)
+        {
+
+            foreach (var slot in list)
+            {
+                int rowID = dgv.GetRowID("history" + NzoID, slot.nzo_id);
+                if (rowID != slot.id)
+                {
+                    var column = dgv.Columns["id"];
+                    if (column != null)
+                    {
+                        dgv.Sort(column, ListSortDirection.Ascending);
                     }
                     break;
                 }
@@ -258,30 +340,30 @@ namespace NZBStatusUI
 
             prgProgress.SetProgressBarColor(Color.LimeGreen);
 
-            row.CreateCells(dgv1, slot.index, slot.nzo_id, Resources.MainForm_RefreshUI_Pause, slot.filename, slot.size, "progress",
+            row.CreateCells(dgvCurrent, slot.index, slot.nzo_id, Resources.MainForm_RefreshUI_Pause, slot.filename, slot.size, "progress",
                 slot.timeleft, slot.cat, slot.priority, slot.script, "delete");
-            var dataGridViewColumn = dgv1.Columns[Resources.MainForm_RefreshUI_delete];
+            var dataGridViewColumn = dgvCurrent.Columns[Resources.MainForm_RefreshUI_delete];
             if (dataGridViewColumn != null)
             {
                 row.Cells[dataGridViewColumn.Index] = btnDelete;
                 dataGridViewColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
             }
 
-            dataGridViewColumn = dgv1.Columns[Resources.MainForm_RefreshUI_Pause];
+            dataGridViewColumn = dgvCurrent.Columns[Resources.MainForm_RefreshUI_Pause];
             if (dataGridViewColumn != null)
             {
                 row.Cells[dataGridViewColumn.Index] = btnPause;
                 dataGridViewColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
 
-            dataGridViewColumn = dgv1.Columns["progress"];
+            dataGridViewColumn = dgvCurrent.Columns["progress"];
             if (dataGridViewColumn != null)
             {
                 row.Cells[dataGridViewColumn.Index] = prgProgress;
                 dataGridViewColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
 
-            dataGridViewColumn = dgv1.Columns["Category"];
+            dataGridViewColumn = dgvCurrent.Columns["Category"];
             if (dataGridViewColumn != null)
             {
                 //row.Cells[dataGridViewColumn.Index] = cmbCategories;
@@ -290,6 +372,28 @@ namespace NZBStatusUI
 
             if (slot.status == "Paused")
                 row.DefaultCellStyle.BackColor = Color.LightGray;
+        }
+
+        private void CreateRow(DataGridViewRow row, History slot)
+        {
+            row.CreateCells(dgvHistory, slot.id, slot.nzo_id, slot.name, slot.size, slot.script, slot.category, DateTime.Today.AddSeconds(slot.download_time).ToString("HH:mm:ss"), slot.downloaded);
+
+            var dataGridViewColumn = dgvHistory.Columns["historycategory"];
+            if (dataGridViewColumn != null)
+            {
+                //row.Cells[dataGridViewColumn.Index] = cmbCategories;
+                row.Cells[dataGridViewColumn.Index].Style.BackColor = GetColorByCategory(slot.category);
+            }
+
+            switch (slot.status)
+            {
+                case "Completed":
+                    row.DefaultCellStyle.BackColor = Color.LightGreen;
+                    break;
+                case "Failed":
+                    row.DefaultCellStyle.BackColor = Color.LightCoral;
+                    break;
+            }
         }
 
         private Color GetColorByCategory(string cat)
@@ -320,9 +424,6 @@ namespace NZBStatusUI
             if (dataGridView != null)
                 switch (dataGridView.Columns[e.ColumnIndex].Name)
                 {
-                    //case "status":
-                    //    MessageBox.Show("you just clicked status");
-                    //    break;
                     case "delete":
                         if (e.RowIndex >= 0)
                         {
@@ -343,17 +444,19 @@ namespace NZBStatusUI
                         }
                         break;
                 }
-            //dgv1.BeginEdit(false);
-            //var dataGridViewColumn = dgv1.Columns["category"];
-            //if (dataGridViewColumn != null && e.ColumnIndex == dataGridViewColumn.Index)// the combobox column index
-            //{
-            //    if (this.dgv1.EditingControl != null
-            //        && this.dgv1.EditingControl is ComboBox)
-            //    {
-            //        ComboBox cmb = this.dgv1.EditingControl as ComboBox;
-            //        cmb.DroppedDown = true;
-            //    }
-            //}
+            /*
+            dgv1.BeginEdit(false);
+            var dataGridViewColumn = dgv1.Columns["category"];
+            if (dataGridViewColumn != null && e.ColumnIndex == dataGridViewColumn.Index)// the combobox column index
+            {
+                if (this.dgv1.EditingControl != null
+                    && this.dgv1.EditingControl is ComboBox)
+                {
+                    ComboBox cmb = this.dgv1.EditingControl as ComboBox;
+                    cmb.DroppedDown = true;
+                }
+            }
+             */
         }
 
         private void versionLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -371,9 +474,10 @@ namespace NZBStatusUI
             }
         }
 
+        /*
         private void dgv1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
-            /*var dgvc = dgv1.Columns["category"];
+            var dgvc = dgv1.Columns["category"];
             if (dgvc != null && (dgv1.CurrentCell.ColumnIndex == dgvc.Index && e.Control is ComboBox))
             {
                 ComboBox cb = e.Control as ComboBox;
@@ -387,19 +491,20 @@ namespace NZBStatusUI
                     cb.SelectedIndexChanged += new
                     EventHandler(cb_SelectedIndexChanged);
                 }
-           }*/
+           }
         }
         private void dgv1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
-            /*if (dgv1.IsCurrentCellDirty)
+            if (dgv1.IsCurrentCellDirty)
             {
                 dgv1.CommitEdit(DataGridViewDataErrorContexts.Commit);
-            }*/
+            }
         }
 
         void cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             MessageBox.Show("Selected index changed");
         }
+        */
     }
 }
