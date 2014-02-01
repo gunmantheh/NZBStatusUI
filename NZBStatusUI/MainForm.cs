@@ -248,7 +248,7 @@ namespace NZBStatusUI
                     }
                     _historyList.Add(slot.nzo_id);
                 }
-                RemoveMissingRows(dgvHistory, _historyList);
+                RemoveMissingRows(dgvHistory, _historyList, true);
                 SortList(dgvHistory, _history);
             }
             else
@@ -258,14 +258,15 @@ namespace NZBStatusUI
         }
 
         /// <summary>
-        /// Removes rows from DataGridView that are no longer present in _currentList
+        /// Removes rows from DataGridView that are no longer present
         /// </summary>
-        private void RemoveMissingRows(DataGridView dgv, HashSet<string> list)
+        private void RemoveMissingRows(DataGridView dgv, HashSet<string> list, bool isHistory = false)
         {
-            HashSet<string> listOfValues = dgv.GetHashSet(NzoID);
+            string rowID = isHistory ? "history" + NzoID : NzoID;
+            HashSet<string> listOfValues = dgv.GetHashSet(rowID);
             foreach (var missing in listOfValues.Except(list))
             {
-                dgv.Rows.RemoveAt(dgv.GetRowID(NzoID, missing));
+                dgv.Rows.RemoveAt(dgv.GetRowID(rowID, missing));
             }
         }
 
@@ -287,37 +288,20 @@ namespace NZBStatusUI
 
         private void SortList(DataGridView dgv, IEnumerable<Slot> list)
         {
-
-            foreach (var slot in list)
+            var column = dgv.Columns["index"];
+            if (column != null)
             {
-                int rowID = dgv.GetRowID(NzoID, slot.nzo_id);
-                if (rowID != slot.index)
-                {
-                    var column = dgv.Columns["index"];
-                    if (column != null)
-                    {
-                        dgv.Sort(column, ListSortDirection.Ascending);
-                    }
-                    break;
-                }
+                dgv.Sort(column, ListSortDirection.Ascending);
             }
         }
 
         private void SortList(DataGridView dgv, IEnumerable<History> list)
         {
 
-            foreach (var slot in list)
+            var column = dgv.Columns["historyid"];
+            if (column != null)
             {
-                int rowID = dgv.GetRowID("history" + NzoID, slot.nzo_id);
-                if (rowID != slot.id)
-                {
-                    var column = dgv.Columns["id"];
-                    if (column != null)
-                    {
-                        dgv.Sort(column, ListSortDirection.Ascending);
-                    }
-                    break;
-                }
+                dgv.Sort(column, ListSortDirection.Descending);
             }
         }
 
