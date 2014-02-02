@@ -124,4 +124,4 @@
 
 :end
 chcp 850
-msbuild NZBStatusUI.sln
+msbuild NZBStatusUI\NZBStatusUI.csproj
