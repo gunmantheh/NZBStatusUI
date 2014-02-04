@@ -73,7 +73,14 @@
   <ItemGroup>
     <Compile Include="DataGridViewProgress\DataGridViewProgressCell.cs" />
     <Compile Include="DataGridViewProgress\DataGridViewProgressColumn.cs" />
+    <Compile Include="DTOs\History.cs" />
+    <Compile Include="DTOs\Slot.cs" />
+    <Compile Include="Enums\Command.cs" />
+    <Compile Include="Enums\ConnectionStatus.cs" />
+    <Compile Include="Enums\Name.cs" />
     <Compile Include="Helpers\Extensions.cs" />
+    <Compile Include="Helpers\JsonHelper.cs" />
+    <Compile Include="JsonDataManipulator.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -114,12 +121,6 @@
     <None Include="Resources\MainIcon.ico" />
     <Content Include="tango_down_arrow_blue.ico" />
     <Content Include="tango_down_arrow_blue_2.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\JsonDataManipulator\JsonDataManipulator.csproj">
-      <Project>{cf7b9f22-332e-438e-a2a9-252d273a7002}</Project>
-      <Name>JsonDataManipulator</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
