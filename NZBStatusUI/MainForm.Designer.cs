@@ -77,7 +77,7 @@ namespace NZBStatusUI
             // dataRefresher
             // 
             this.dataRefresher.Enabled = true;
-            this.dataRefresher.Interval = 1000;
+            this.dataRefresher.Interval = 5000;
             this.dataRefresher.Tick += new System.EventHandler(this.dataRefresher_Tick);
             // 
             // dgvCurrent
@@ -231,6 +231,7 @@ namespace NZBStatusUI
             this.versionLink.TabIndex = 5;
             this.versionLink.TabStop = true;
             this.versionLink.Text = "Home";
+            this.versionLink.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.versionLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.versionLink_LinkClicked);
             // 
             // numericUpDown1

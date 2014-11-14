@@ -361,7 +361,7 @@ namespace NZBStatusUI
 
         private void CreateRow(DataGridViewRow row, History slot)
         {
-            row.CreateCells(dgvHistory, slot.id, slot.nzo_id, slot.name, slot.size, slot.script, slot.category, DateTime.Today.AddSeconds(slot.download_time).ToString("HH:mm:ss"), slot.downloaded);
+            row.CreateCells(dgvHistory, slot.id, slot.nzo_id, slot.name, slot.size, slot.script, slot.category, DateTime.Today.AddSeconds(slot.download_time).ToString("HH:mm:ss"), (slot.downloaded / 1024 / 1024).ToString() + " MB");
 
             var dataGridViewColumn = dgvHistory.Columns["historycategory"];
             if (dataGridViewColumn != null)
