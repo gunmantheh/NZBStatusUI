@@ -66,6 +66,7 @@ namespace NZBStatusUI
             this.historycategory = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.historydownloadtime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.historydownloaded = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.historyspeed = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dgvCurrent)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.tabControl1.SuspendLayout();
@@ -328,7 +329,8 @@ namespace NZBStatusUI
             this.historyscript,
             this.historycategory,
             this.historydownloadtime,
-            this.historydownloaded});
+            this.historydownloaded,
+            this.historyspeed});
             this.dgvHistory.Location = new System.Drawing.Point(0, 0);
             this.dgvHistory.MultiSelect = false;
             this.dgvHistory.Name = "dgvHistory";
@@ -389,6 +391,12 @@ namespace NZBStatusUI
             this.historydownloaded.HeaderText = "Downloaded";
             this.historydownloaded.Name = "historydownloaded";
             this.historydownloaded.ReadOnly = true;
+            // 
+            // historyspeed
+            // 
+            this.historyspeed.HeaderText = "Speed";
+            this.historyspeed.Name = "historyspeed";
+            this.historyspeed.ReadOnly = true;
             // 
             // MainForm
             // 
@@ -456,6 +464,7 @@ namespace NZBStatusUI
         private System.Windows.Forms.DataGridViewTextBoxColumn historycategory;
         private System.Windows.Forms.DataGridViewTextBoxColumn historydownloadtime;
         private System.Windows.Forms.DataGridViewTextBoxColumn historydownloaded;
+        private System.Windows.Forms.DataGridViewTextBoxColumn historyspeed;
     }
 }
 

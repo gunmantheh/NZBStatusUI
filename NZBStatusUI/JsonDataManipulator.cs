@@ -81,12 +81,12 @@ namespace NZBStatusUI
 
         public string ETA
         {
-            get { return GetRootValue<string>("timeleft"); }
+            get { return GetRootValue<string>("timeleft") ?? String.Empty; }
         }
 
         public string Version
         {
-            get { return GetRootValue<string>("version"); }
+            get { return GetRootValue<string>("version") ?? String.Empty; }
         }
 
         public decimal Speed
@@ -106,7 +106,7 @@ namespace NZBStatusUI
 
         public bool IsDownloading
         {
-            get { return Status == "Downloading"; }
+            get { return Status.Equals("downloading", StringComparison.InvariantCultureIgnoreCase); }
         }
 
         public bool IsPaused
@@ -116,7 +116,7 @@ namespace NZBStatusUI
 
         public string Status
         {
-            get { return GetRootValue<string>("status"); }
+            get { return GetRootValue<string>("status") ?? String.Empty; }
         }
 
         public Slot GetCurrentSlot()

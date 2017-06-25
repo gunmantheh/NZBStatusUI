@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using Enums;
-using JsonDataManipulator.Enums;
 using JsonDataManipulator.Helpers;
 using JsonDataManipulator.DTOs;
 using Microsoft.WindowsAPICodePack.Taskbar;
@@ -246,6 +245,7 @@ namespace NZBStatusUI
                             dgvHistory.Rows[rowID].Cells["history" + "category"].Value = slot.category;
                             dgvHistory.Rows[rowID].Cells["history" + "category"].Style.BackColor = GetColorByCategory(slot.category);
                         }
+                        UpdateValue(dgvHistory, rowID, "history" + "speed", string.Format("{0}", Math.Round((decimal)(slot.downloaded / slot.download_time / 1024), 2).SpeedToString()));
                     }
                     _historyList.Add(slot.nzo_id);
                 }
@@ -308,7 +308,7 @@ namespace NZBStatusUI
 
         private static string GetStatus(Slot slot)
         {
-            return slot.status == "Paused" ? "Resume" : "Pause";
+            return slot.status.Equals("paused", StringComparison.InvariantCultureIgnoreCase) ? "Resume" : "Pause";
         }
 
 
@@ -355,7 +355,7 @@ namespace NZBStatusUI
                 row.Cells[dataGridViewColumn.Index].Style.BackColor = GetColorByCategory(slot.cat);
             }
 
-            if (slot.status == "Paused")
+            if (slot.status.Equals("paused", StringComparison.InvariantCultureIgnoreCase))
                 row.DefaultCellStyle.BackColor = Color.LightGray;
         }
 
@@ -370,12 +370,12 @@ namespace NZBStatusUI
                 row.Cells[dataGridViewColumn.Index].Style.BackColor = GetColorByCategory(slot.category);
             }
 
-            switch (slot.status)
+            switch (slot.status.ToLower())
             {
-                case "Completed":
+                case "completed":
                     row.DefaultCellStyle.BackColor = Color.LightGreen;
                     break;
-                case "Failed":
+                case "failed":
                     row.DefaultCellStyle.BackColor = Color.LightCoral;
                     break;
             }
@@ -407,7 +407,7 @@ namespace NZBStatusUI
         {
             var dataGridView = sender as DataGridView;
             if (dataGridView != null)
-                switch (dataGridView.Columns[e.ColumnIndex].Name)
+                switch (dataGridView.Columns[e.ColumnIndex].Name.ToLower())
                 {
                     case "delete":
                         if (e.RowIndex >= 0)
@@ -418,7 +418,7 @@ namespace NZBStatusUI
                     case "pause":
                         if (e.RowIndex >= 0)
                         {
-                            if (dataGridView.Rows[e.RowIndex].Cells["pause"].Value as string == "Resume")
+                            if ((dataGridView.Rows[e.RowIndex].Cells["pause"].Value as string).Equals("resume", StringComparison.InvariantCultureIgnoreCase))
                             {
                                 _jsr.Resume(dataGridView.Rows[e.RowIndex].Cells[NzoID].Value as string);
                             }
