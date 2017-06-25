@@ -138,7 +138,7 @@ namespace NZBStatusUI
             lblLastError.Text = _jsr.GetLastError();
 
             versionLink.Text = _jsr.Version;
-            lblSpeedLimit.Text = string.Format("Speed limit: {0}", _jsr.SpeedLimit == 0 ? "none" : Convert.ToDecimal(_jsr.SpeedLimit).SpeedToString());
+            lblSpeedLimit.Text = string.Format("Speed limit: {0}%", _jsr.SpeedLimit == 0 ? "none" : _jsr.SpeedLimit.ToString());
 
             btnPauseMain.Text = _jsr.IsPaused ? Resources.MainForm_RefreshUI_Resume : Resources.MainForm_RefreshUI_Pause;
             _currentList.Clear();
@@ -446,7 +446,7 @@ namespace NZBStatusUI
 
         private void versionLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("http://sabnzbd.org/download/");
+            Process.Start("http://sabnzbd.org/downloads");
         }
 
         private void numericUpDown1_KeyPress(object sender, KeyPressEventArgs e)

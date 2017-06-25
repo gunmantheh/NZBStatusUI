@@ -77,7 +77,7 @@ namespace NZBStatusUI
             // dataRefresher
             // 
             this.dataRefresher.Enabled = true;
-            this.dataRefresher.Interval = 5000;
+            this.dataRefresher.Interval = 1000;
             this.dataRefresher.Tick += new System.EventHandler(this.dataRefresher_Tick);
             // 
             // dgvCurrent

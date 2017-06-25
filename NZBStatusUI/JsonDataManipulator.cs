@@ -244,8 +244,8 @@ namespace NZBStatusUI
 
             if (!string.IsNullOrEmpty(_resultHistory) && _connectionStatus == Enums.ConnectionStatus.Ok)
             {
-                _jsonString = JObject.Parse(_resultHistory).GetValue("history") ?? new JObject();
-                _history = (JArray)_jsonString["slots"] ?? new JArray();
+                JToken history = JObject.Parse(_resultHistory).GetValue("history") ?? new JObject();
+                _history = (JArray)history["slots"] ?? new JArray();
                 // this ensures that the true will be returned on next pass only where there is new data downloaded
                 _resultHistory = string.Empty;
                 returnVal = true && returnVal;
